@@ -1,114 +1,161 @@
 # AnonConnect
 
-AnonConnect is a production-ready anonymous full-stack app with:
+> Truly anonymous real-time chat & video calls — no database, no accounts, no traces.
 
-- Real-time room-based chat (`/chat` namespace)
-- WebRTC voice/video calls with Socket.io signaling (`/call` namespace)
-- In-memory room, user, and call state (no database)
-- Vanilla HTML/CSS/JS frontend
+![Node.js](https://img.shields.io/badge/Node.js-18+-green) ![Socket.io](https://img.shields.io/badge/Socket.io-4.6-blue) ![WebRTC](https://img.shields.io/badge/WebRTC-P2P-orange) ![License](https://img.shields.io/badge/License-MIT-purple)
+
+---
+
+## What is AnonConnect?
+
+AnonConnect is a production-ready anonymous communication platform. You get a random identity the moment you open the app — no signup, no login, no data stored anywhere. Every message, room, and call lives in server memory only and vanishes on restart.
+
+---
 
 ## Features
 
-- Anonymous random usernames and room switching
-- Live online count + active room list with user counts
-- Optional private rooms with in-memory password protection
-- Typing indicators, system join/leave events, emoji picker
-- Room message history (last 50 messages) synced on join
-- Message reactions with live updates
-- Base64 image sharing for files under 2MB
-- Optional disappearing messages via room TTL (5m / 1h / 24h)
-- Room auto-cleanup after 5 minutes of inactivity (0 users)
-- In-memory per-socket message rate limiting (30 messages/minute)
-- HTTP rate limiting + secure headers with `helmet`
-- Multi-peer call room support (up to 4 remote peers)
-- Mute/camera/screen-share controls and call timer
-- In-call side panel chat and participants status
+### 💬 Chat
+- Random anonymous usernames auto-generated on connect (e.g. `SilentPanda42`)
+- Create or join named rooms — switch freely anytime
+- Optional password-protected private rooms
+- Last 50 messages synced instantly when you join a room
+- Live typing indicators
+- Emoji picker
+- Message reactions (broadcast live to room)
+- Inline image sharing via base64 (< 2MB, no cloud upload)
+- Disappearing messages — room-level TTL: `off / 5min / 1hr / 24hr`
+- Empty rooms auto-deleted after 5 minutes
 
-## Project Structure
+### 📹 Voice & Video Calls
+- Peer-to-peer WebRTC calls — server only handles signaling
+- Up to 4 participants per call room
+- Mute / camera toggle with live status broadcast
+- Screen sharing
+- In-call side chat panel
+- Live call duration timer
+- 6-character shareable room codes
 
-```txt
-AnonConnect/
-├── server.js
-├── package.json
-├── .env.example
-├── public/
-│   ├── index.html
-│   ├── chat.html
-│   ├── call.html
-│   ├── css/
-│   │   ├── main.css
-│   │   ├── chat.css
-│   │   ├── call.css
-│   │   └── components.css
-│   ├── js/
-│   │   ├── socket-client.js
-│   │   ├── chat.js
-│   │   ├── webrtc.js
-│   │   ├── call.js
-│   │   └── utils.js
-│   └── assets/icons/
+### 🔒 Security
+- `helmet` — secure HTTP headers
+- `express-rate-limit` — 100 requests / 15 min per IP
+- Per-socket rate limit — 30 messages / min
+- Zero persistence — no DB, no logs, no cookies
+- Configurable CORS via `CORS_ORIGIN` env variable
+
+---
+
+## Quick Start
+```bash
+git clone https://github.com/your-username/AnonConnect.git
+cd AnonConnect
+npm install
+cp .env.example .env
+npm start
 ```
 
-## Setup
+Open → **http://localhost:3000**
 
-1. Install dependencies
-   ```bash
-   npm install
-   ```
-2. Copy environment template
-   ```bash
-   cp .env.example .env
-   ```
-3. Start server
-   ```bash
-   npm start
-   ```
-4. Open `http://localhost:3000`
-
-## Development
-
+For development with auto-restart:
 ```bash
 npm run dev
 ```
 
+---
+
 ## Environment Variables
 
-- `PORT`: server port (default `3000`)
-- `NODE_ENV`: runtime mode
-- `CORS_ORIGIN`: allowed origin (`*` by default)
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3000` | Server port |
+| `NODE_ENV` | `development` | Runtime mode |
+| `CORS_ORIGIN` | `*` | Allowed origin (lock down in production) |
+
+---
+
+## Project Structure
+```
+AnonConnect/
+├── server.js                  # Express + Socket.io backend
+├── package.json
+├── .env.example
+└── public/
+    ├── index.html             # Landing page
+    ├── chat.html              # Chat room page
+    ├── call.html              # Voice/video call page
+    ├── css/
+    │   ├── main.css           # Global theme + variables
+    │   ├── chat.css           # Chat interface
+    │   ├── call.css           # Call interface
+    │   └── components.css     # Reusable components
+    └── js/
+        ├── socket-client.js   # Socket.io connection manager
+        ├── chat.js            # Chat logic
+        ├── webrtc.js          # WebRTC peer connection
+        ├── call.js            # Call UI + controls
+        └── utils.js           # Helpers + utilities
+```
+
+---
 
 ## Socket Events
 
-### `/chat`
-- `welcome`
-- `join-room`
-- `join-room-error`
-- `send-message`
-- `send-file`
-- `add-reaction`
-- `reaction-updated`
-- `message-deleted`
-- `typing-start`
-- `typing-stop`
-- `get-rooms`
-- `create-room`
-- `online-count`
-- `rate-limit-hit`
+### `/chat` Namespace
 
-### `/call`
-- `join-call-room`
-- `webrtc-offer`
-- `webrtc-answer`
-- `webrtc-ice-candidate`
-- `call-request`
-- `call-accepted`
-- `call-rejected`
-- `call-ended`
-- `mute-toggle`
-- `video-toggle`
+| Event | Direction | Description |
+|---|---|---|
+| `welcome` | server → client | Assigns random username on connect |
+| `join-room` | client → server | Join a named room |
+| `join-room-error` | server → client | Wrong password or room not found |
+| `send-message` | client → server | Send text message to room |
+| `send-file` | client → server | Send base64 image to room |
+| `add-reaction` | client → server | Add emoji reaction to a message |
+| `reaction-updated` | server → room | Reactions changed on a message |
+| `message-deleted` | server → room | TTL expired, message removed |
+| `typing-start` | client → server | User started typing |
+| `typing-stop` | client → server | User stopped typing |
+| `get-rooms` | client → server | Fetch active room list |
+| `create-room` | client → server | Create new room with options |
+| `online-count` | server → all | Total connected users updated |
+| `rate-limit-hit` | server → client | Message rate limit exceeded |
 
-## Notes
+### `/call` Namespace
 
-- In-memory state is intentionally volatile; restarting server resets rooms/users/calls.
-- For production at scale, add Redis adapter for Socket.io and persistent backing services.
-- WebRTC P2P works best over HTTPS in production and may need TURN servers for strict NATs.
+| Event | Direction | Description |
+|---|---|---|
+| `join-call-room` | client → server | Join call room by code |
+| `webrtc-offer` | client → server | Forward SDP offer to peer |
+| `webrtc-answer` | client → server | Forward SDP answer to caller |
+| `webrtc-ice-candidate` | client → server | Relay ICE candidate between peers |
+| `call-request` | client → server | Notify room of incoming call |
+| `call-accepted` | client → server | Callee accepted the call |
+| `call-rejected` | client → server | Callee rejected the call |
+| `call-ended` | client → server | End call for all participants |
+| `mute-toggle` | client → server | Broadcast mic mute state |
+| `video-toggle` | client → server | Broadcast camera state |
+
+---
+
+## Architecture
+```
+Browser ──── Socket.io ────► Node.js Server
+   │          (signaling)     (in-memory only)
+   │                               │
+   └──── WebRTC P2P ───────────────┘
+         (direct media,
+          no server relay)
+```
+
+---
+
+## Production Notes
+
+- **HTTPS required** — WebRTC won't work on plain HTTP in modern browsers
+- **TURN servers** — Add Coturn for users behind strict NATs/firewalls
+- **Scaling** — Use `@socket.io/redis-adapter` for multi-instance deployments
+- **CORS** — Set `CORS_ORIGIN` to your exact domain, never leave `*` public
+
+---
+
+## License
+
+MIT — do whatever you want with it.
