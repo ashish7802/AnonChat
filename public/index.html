@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AnonConnect | Anonymous Chat & Calls</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+</head>
+<body class="landing-body">
+  <div class="gradient-bg"></div>
+  <header class="container nav">
+    <h1 class="logo">AnonConnect</h1>
+    <span class="badge" id="landingOnline">Online: --</span>
+  </header>
+
+  <main class="container hero">
+    <section>
+      <h2>Anonymous conversations, instant human connection.</h2>
+      <p>Start chatting or jump into secure peer-to-peer voice/video calls in seconds — no account required.</p>
+      <div class="hero-actions">
+        <a href="/chat.html" class="btn btn-primary">Enter Chat</a>
+        <a href="/call.html" class="btn btn-secondary">Start Call</a>
+      </div>
+    </section>
+
+    <section class="card steps">
+      <h3>How it works</h3>
+      <ol>
+        <li><strong>Open:</strong> pick chat or call instantly.</li>
+        <li><strong>Chat:</strong> join rooms, share messages in real-time.</li>
+        <li><strong>Connect:</strong> switch to private voice/video with room codes.</li>
+      </ol>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module">
+    const socket = io('/chat');
+    const online = document.getElementById('landingOnline');
+    socket.on('online-count', (count) => {
+      online.textContent = `Online: ${count}`;
+    });
+  </script>
+</body>
+</html>
